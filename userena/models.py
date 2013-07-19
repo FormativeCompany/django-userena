@@ -125,6 +125,13 @@ class UserenaSignup(models.Model):
                   'confirmation_key': self.email_confirmation_key,
                   'site': Site.objects.get_current()}
 
+        from customerio import CustomerIO
+        from django.conf import settings
+        from django.core.urlresolvers import reverse
+        cio = CustomerIO(settings.CUSTOMERIO_SITE_ID, settings.CUSTOMERIO_API_KEY)
+        cio.identify(id=self.user.id, email=self.user.email, name='%s %s' % (self.user.first_name, self.user.last_name), plan='free')
+
+        """
         # Email to the old address, if present
         subject_old = render_to_string('userena/emails/confirmation_email_subject_old.txt',
                                        context)
@@ -132,12 +139,15 @@ class UserenaSignup(models.Model):
 
         message_old = render_to_string('userena/emails/confirmation_email_message_old.txt',
                                        context)
+
         if self.user.email:
             send_mail(subject_old,
                       message_old,
                       settings.DEFAULT_FROM_EMAIL,
                     [self.user.email])
+        """
 
+        """
         # Email to the new address
         subject_new = render_to_string('userena/emails/confirmation_email_subject_new.txt',
                                        context)
@@ -145,11 +155,15 @@ class UserenaSignup(models.Model):
 
         message_new = render_to_string('userena/emails/confirmation_email_message_new.txt',
                                        context)
-
+        """
+        confirmation_url = 'http://' + Site.objects.get_current().domain + reverse('userena_email_confirm', args=[self.email_confirmation_key])
+        cio.track(customer_id=self.user.id, name='confirmation_email_new', confirmation_url=confirmation_url)
+        """
         send_mail(subject_new,
                   message_new,
                   settings.DEFAULT_FROM_EMAIL,
                   [self.email_unconfirmed, ])
+        """
 
     def activation_key_expired(self):
         """
@@ -186,6 +200,13 @@ class UserenaSignup(models.Model):
                   'activation_key': self.activation_key,
                   'site': Site.objects.get_current()}
 
+        from customerio import CustomerIO
+        from django.conf import settings
+        from django.core.urlresolvers import reverse
+        cio = CustomerIO(settings.CUSTOMERIO_SITE_ID, settings.CUSTOMERIO_API_KEY)
+        cio.identify(id=self.user.id, email=self.user.email, name='%s %s' % (self.user.first_name, self.user.last_name), plan='free')
+
+        """
         subject = render_to_string('userena/emails/activation_email_subject.txt',
                                    context)
         subject = ''.join(subject.splitlines())
@@ -196,6 +217,9 @@ class UserenaSignup(models.Model):
                   message,
                   settings.DEFAULT_FROM_EMAIL,
                   [self.user.email, ])
+        """
+        activation_url = 'http://' + Site.objects.get_current().domain + reverse('userena_activate', args=[self.activation_key])
+        cio.track(customer_id=self.user.id, name='activation_email', activation_url=activation_url)
 
 
 class UserenaBaseProfile(models.Model):
